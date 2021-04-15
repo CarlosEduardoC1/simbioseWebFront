@@ -1,7 +1,7 @@
 import { Pane, Text } from 'evergreen-ui';
 import Container from '../container';
-import { paneprops, textprops, divprops, divcontainer } from '../../props/cadastro';
-import { cardprops, divbox, divcards, divlabel, colors, propsbuttons, divbuttons } from '../../props/agendamentos';
+import { paneprops, textprops, divprops, divcontainer } from '../cadastro/props';
+import { cardprops, divbox, divcards, divlabel, colors, propsbuttons, divbuttons } from './props';
 import { CardContent, Typography, CardActions, Button } from '@material-ui/core';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import { green } from '@material-ui/core/colors';

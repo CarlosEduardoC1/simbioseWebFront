@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Pane, Text, Tab, TabNavigation } from 'evergreen-ui';
 import Container from '../container';
-import { paneprops, textprops, fieldprops, divprops, divcontainer, divbuttons, buttonCancel, buttonSave } from '../../props/cadastro';
+import { paneprops, textprops, fieldprops, divprops, divcontainer, divbuttons, buttonCancel, buttonSave } from '../cadastro/props';
 import { Button, Checkbox, TextField } from '@material-ui/core';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import { green } from '@material-ui/core/colors';
-import { tabs } from '../../props/configr';
+import { tabs } from './props';
 
 export default function Config() {
 

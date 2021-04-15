@@ -1,11 +1,13 @@
 import { Pane, Text } from 'evergreen-ui';
 import Container from '../container';
-import { paneprops, textprops, fieldprops, divprops, divcontainer, divbuttons, buttonCancel, buttonSave, fieldStyle } from '../../props/cadastro';
-import { Button, Checkbox, TextField, FormHelperText, Backdrop, CircularProgress } from '@material-ui/core';
+import { paneprops, textprops, fieldprops, divprops, divcontainer, divbuttons, buttonCancel, buttonSave } from './props';
+import { Button, Checkbox, TextField, FormHelperText, Backdrop, CircularProgress, Snackbar } from '@material-ui/core';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import { green } from '@material-ui/core/colors';
 import { formataMoeda } from '../../utils/formatacoes';
 import { useState } from 'react';
+import { _getCategoria, _saveCadastro } from './services';
+import { Alert } from '@material-ui/lab';
 
 export default function Cadastro() {
 
@@ -28,26 +30,60 @@ export default function Cadastro() {
     const [hrFimError, setHoraFimError] = useState();
     const [hrFimDisable, setHoraFimDisable] = useState(false);
     const [passo, setPasso] = useState();
+    const [passoError, setPassoError] = useState();
     const [backDrop, setBackDrop] = useState(false);
     const [modal, setModal] = useState();
+    const [message, setMessage] = useState();
+    const [snackbar, setSnack] = useState(false);
+    const [type, setType] = useState();
 
     function _validations() {
         setBackDrop(true);
-        if (!proced) { setProcedError("Campo obrigatório!"); setBackDrop(false); }
+        if (!proced) { setProcedError("Campo obrigatório!"); setBackDrop(false); return true; }
         else { setProcedError(''); setBackDrop(false); }
-        if (!medico) { setMedicoError("Campo obrigatório!"); setBackDrop(false); }
+        if (!medico) { setMedicoError("Campo obrigatório!"); setBackDrop(false); return true; }
         else { setMedicoError(''); setBackDrop(false); }
-        if (!hrInicio) { setHoraInicioError("Campo obrigatório!"); setBackDrop(false); }
+        if (!hrInicio) { setHoraInicioError("Campo obrigatório!"); setBackDrop(false); return true; }
         else { setHoraInicioError(''); setBackDrop(false); }
-        if (!hrFim) { setHoraFimError("Campo obrigatório!"); setBackDrop(false); }
+        if (!hrFim) { setHoraFimError("Campo obrigatório!"); setBackDrop(false); return true; }
         else { setHoraFimError(''); setBackDrop(false); }
-        if (!categoria) { setCategoriaError("Campo obrigatório!"); setBackDrop(false); }
+        if (!categoria) { setCategoriaError("Campo obrigatório!"); setBackDrop(false); return true; }
         else { setCategoriaError(''); setBackDrop(false); }
+        if (!passo) { setPassoError("Informe um passo de hora!"); setBackDrop(false); return true; }
+        else { setPassoError(''); setBackDrop(false); }
+    }
+
+
+    async function salvaCadastro() {
+        await _calculaPasso();
+        const response = await _validations();
+        if (response) {
+            return;
+        }
+        else {
+            const response = await _saveCadastro({
+                especialidade: proced
+                , medico: medico
+                , particular: particular
+                , simbiose: simbiose
+                , bompastor: bompastor
+                , atestado: atestado
+                , categoria: categoria
+                , hrInicio: hrInicio
+                , hrFim: hrFim
+            })
+                .then(res => { setMessage("Cadastrado com sucesso"); setSnack(true); setType("success"); })
+                .catch(error => { setMessage(error); setSnack(true); setType('error'); });
+        }
+    }
+
+    async function _calculaPasso() {
     }
 
     return (
         <div>
             <Backdrop open={backDrop}> <CircularProgress color="inherit" /></Backdrop>
+            <Snackbar open={snackbar} anchorOrigin={{ vertical: 'top', horizontal: 'center' }} autoHideDuration={300}><Alert severity={type}>{message}</Alert></Snackbar>
             <Container value={0} />
             <Pane {...paneprops} >
                 <div style={divcontainer}>
@@ -76,7 +112,7 @@ export default function Cadastro() {
                     <div style={divprops}>
                         <div>
                             <Text style={textprops}>Selecione a categoria</Text>
-                            <FormHelperText error >{categoriaError}</FormHelperText>
+                            <FormHelperText error style={{ marginLeft: 15 }}>{categoriaError}</FormHelperText>
                         </div>
                         <div style={divprops} >
                             <div><Checkbox value="Exames" onClick={event => setCategoria(event.target.value)} /> Exames</div>
@@ -104,6 +140,7 @@ export default function Cadastro() {
                         </div>
                         <div> <Checkbox value="30" onClick={event => setPasso(event.target.value)} />Passo 30 min </div>
                         <div> <Checkbox value="1" onClick={event => setPasso(event.target.value)} />Passo 1 hora </div>
+                        <div> <FormHelperText error style={{ marginLeft: 20 }} >{passoError}</FormHelperText> </div>
                         <div style={divprops}>
                             Fim
                             <TextField disabled={hrFimDisable} error={!!hrFimError} {...fieldprops} type="datetime-local" value={hrFim}
@@ -131,7 +168,7 @@ export default function Cadastro() {
                     </div>
                     <div style={divcontainer}>
                         <ThemeProvider theme={theme}>
-                            <Button {...buttonSave} onClick={() => _validations()}>Salvar</Button>
+                            <Button {...buttonSave} onClick={() => salvaCadastro()}>Salvar</Button>
                         </ThemeProvider>
                     </div>
                 </div>

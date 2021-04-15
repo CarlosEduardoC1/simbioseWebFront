@@ -5,7 +5,7 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import { useHistory } from 'react-router-dom';
 import { Text } from 'evergreen-ui';
-import { tabprops, divprops } from '../../props/container';
+import { tabprops, divprops } from './props';
 
 const useStyles = makeStyles((theme) => ({
     root: {
