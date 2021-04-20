@@ -5,10 +5,21 @@ import { cardprops, divbox, divcards, divlabel, colors, propsbuttons, divbuttons
 import { CardContent, Typography, CardActions, Button } from '@material-ui/core';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import { green } from '@material-ui/core/colors';
+import { useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 
 export default function Agendamentos() {
 
     const theme = createMuiTheme({ palette: { primary: green } });
+
+
+    let history = useHistory();
+
+    useEffect(async () => {
+        const token = await sessionStorage.getItem('token');
+        if (token) { console.log(token) }
+        else { history.push('/'); }
+    })
 
     return (
         <div>

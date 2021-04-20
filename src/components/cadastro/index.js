@@ -5,9 +5,11 @@ import { Button, Checkbox, TextField, FormHelperText, Backdrop, CircularProgress
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import { green } from '@material-ui/core/colors';
 import { formataMoeda } from '../../utils/formatacoes';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { _getCategoria, _saveCadastro } from './services';
 import { Alert } from '@material-ui/lab';
+import { FieldArray, Formik, Form } from 'formik';
+import { useHistory } from 'react-router-dom';
 
 export default function Cadastro() {
 
@@ -23,19 +25,20 @@ export default function Cadastro() {
     const [medicoError, setMedicoError] = useState();
     const [categoria, setCategoria] = useState();
     const [categoriaError, setCategoriaError] = useState();
-    const [hrInicio, setHoraInicio] = useState();
-    const [hrInicioError, setHoraInicioError] = useState();
-    const [hrInicioDisable, setHoraInicioDisable] = useState(false);
-    const [hrFim, setHoraFim] = useState();
-    const [hrFimError, setHoraFimError] = useState();
-    const [hrFimDisable, setHoraFimDisable] = useState(false);
-    const [passo, setPasso] = useState();
-    const [passoError, setPassoError] = useState();
     const [backDrop, setBackDrop] = useState(false);
     const [modal, setModal] = useState();
     const [message, setMessage] = useState();
     const [snackbar, setSnack] = useState(false);
     const [type, setType] = useState();
+    const [value, setValues] = useState();
+
+    let history = useHistory();
+
+    useEffect(async () => {
+        const token = await sessionStorage.getItem('token');
+        if (token) { console.log(token) }
+        else { history.push('/'); }
+    })
 
     function _validations() {
         setBackDrop(true);
@@ -43,19 +46,12 @@ export default function Cadastro() {
         else { setProcedError(''); setBackDrop(false); }
         if (!medico) { setMedicoError("Campo obrigatório!"); setBackDrop(false); return true; }
         else { setMedicoError(''); setBackDrop(false); }
-        if (!hrInicio) { setHoraInicioError("Campo obrigatório!"); setBackDrop(false); return true; }
-        else { setHoraInicioError(''); setBackDrop(false); }
-        if (!hrFim) { setHoraFimError("Campo obrigatório!"); setBackDrop(false); return true; }
-        else { setHoraFimError(''); setBackDrop(false); }
         if (!categoria) { setCategoriaError("Campo obrigatório!"); setBackDrop(false); return true; }
         else { setCategoriaError(''); setBackDrop(false); }
-        if (!passo) { setPassoError("Informe um passo de hora!"); setBackDrop(false); return true; }
-        else { setPassoError(''); setBackDrop(false); }
     }
 
 
-    async function salvaCadastro() {
-        await _calculaPasso();
+    async function salvaCadastro(values) {
         const response = await _validations();
         if (response) {
             return;
@@ -69,15 +65,11 @@ export default function Cadastro() {
                 , bompastor: bompastor
                 , atestado: atestado
                 , categoria: categoria
-                , hrInicio: hrInicio
-                , hrFim: hrFim
+                , hora: value.dataHora
             })
                 .then(res => { setMessage("Cadastrado com sucesso"); setSnack(true); setType("success"); })
                 .catch(error => { setMessage(error); setSnack(true); setType('error'); });
         }
-    }
-
-    async function _calculaPasso() {
     }
 
     return (
@@ -133,33 +125,34 @@ export default function Cadastro() {
                             <Text style={textprops}>Selecione a data e hora</Text>
                         </div>
                         <div style={divprops}>
-                            Início
-                            <TextField disabled={hrInicioDisable} error={!!hrInicioError} {...fieldprops} type="datetime-local" value={hrInicio}
-                                onChange={event => setHoraInicio(event.target.value)} />
-                            <FormHelperText error>{hrInicioError}</FormHelperText>
+                            <Formik enableReinitialize={true} initialValues={{ dataHora: [{ valor: '' }] }}>
+                                {({ values, setFieldValue }) => {
+                                    setValues(values);
+                                    return (
+                                        <Form>
+                                            <FieldArray name="dataHora">
+                                                {(arrayHelpers) => (
+                                                    <div>
+                                                        <div>
+                                                            <Button variant='outlined' style={{ margin: '20px' }} onClick={() => arrayHelpers.push({ valor: '' })}>Add Data/Hora</Button>
+                                                        </div>
+                                                        {values.dataHora.map((configs, index) => {
+                                                            const nome = `dataHora.${index}.valor`;
+                                                            return (
+                                                                <div>
+                                                                    <TextField {...fieldprops} type="datetime-local" name={nome} value={values.dataHora.valor}
+                                                                        onChange={e => { setFieldValue(nome, e.target.value) }} />
+                                                                </div>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </FieldArray>
+                                        </Form>
+                                    )
+                                }}
+                            </Formik>
                         </div>
-                        <div> <Checkbox value="30" onClick={event => setPasso(event.target.value)} />Passo 30 min </div>
-                        <div> <Checkbox value="1" onClick={event => setPasso(event.target.value)} />Passo 1 hora </div>
-                        <div> <FormHelperText error style={{ marginLeft: 20 }} >{passoError}</FormHelperText> </div>
-                        <div style={divprops}>
-                            Fim
-                            <TextField disabled={hrFimDisable} error={!!hrFimError} {...fieldprops} type="datetime-local" value={hrFim}
-                                onChange={event => setHoraFim(event.target.value)} />
-                            <FormHelperText error>{hrFimError}</FormHelperText>
-                        </div>
-                        <div><Checkbox value="De seg à sex das 08h as 18h" onChange={event => {
-                            if (event.target.checked) {
-                                setHoraFim(event.target.value);
-                                setHoraFimDisable(true);
-                                setHoraInicio(event.target.value);
-                                setHoraInicioDisable(true);
-                            } else {
-                                setHoraInicio('');
-                                setHoraInicioDisable(false);
-                                setHoraFim('');
-                                setHoraFimDisable(false);
-                            }
-                        }} /> Procedimento realizado todos os dias em todos os horários disponíveis</div>
                     </div>
                 </div>
                 <div style={divbuttons}>
