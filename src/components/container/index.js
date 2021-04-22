@@ -5,7 +5,8 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import { useHistory } from 'react-router-dom';
 import { Text } from 'evergreen-ui';
-import { tabprops, divprops } from './props';
+import { tabprops, divprops, divLabel, textStyle, buttonProps, appBarProps } from './props';
+import { Button } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -33,9 +34,14 @@ export default function FullWidthTabs(props) {
         history.push(`/${event.target.textContent}`);
     };
 
+    const _logout = () => {
+        sessionStorage.removeItem('token');
+        history.push('/');
+    }
+
     return (
         <div className={classes.root}>
-            <AppBar position="absolute" color="default">
+            <AppBar {...appBarProps}>
                 <Tabs value={value} onChange={handleChange} {...tabprops} aria-label="full width tabs example">
                     <Tab value={0} label="Cadastro" name="cadastro" />
                     <Tab value={1} label="Agendamentos" />
@@ -44,7 +50,12 @@ export default function FullWidthTabs(props) {
                 </Tabs>
             </AppBar>
             <div style={divprops}>
-                <Text style={{ fontWeight: 'bold', color: "white", fontSize: 20 }} > CLÍNICA SIMBIOSE</Text>
+                <div style={divLabel}>
+                    <Text style={textStyle} > CLÍNICA SIMBIOSE</Text>
+                </div>
+                <div style={divLabel}>
+                    <Button {...buttonProps} onClick={() => _logout()}>Sair</Button>
+                </div>
             </div>
         </div>
     );

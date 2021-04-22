@@ -55,3 +55,18 @@ export const divbuttons = {
     , flexDirection: 'row'
     , justifyContent: 'space-between'
 }
+
+export const cardText = {
+    fontWeight: 'bold'
+    , marginLeft: 15
+    , marginTop: 15
+    , color: 'white'
+}
+
+export const divMaps = { display: "flex", flexDirection: 'row', flexWrap: "wrap" }
+
+export const divFiltro = { display: "flex", width: '100%' }
+
+export const divFormControl = { width: '50%' }
+
+export const selectCat = { width: '100%' }
