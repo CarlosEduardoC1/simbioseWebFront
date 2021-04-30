@@ -7,7 +7,7 @@ import { createMuiTheme } from '@material-ui/core/styles';
 import { green } from '@material-ui/core/colors';
 import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { _arquivaAgendamento, _deletaAgendamento, _filtroPorCategoria, _getAgendamentos, _getArquivo } from './services';
+import { _arquivaAgendamento, _deletaAgendamento, _filtroPorCategoria, _getAgendamentos, _getArquivo, _deletaArquivo } from './services';
 import { Alert } from '@material-ui/lab';
 import { categoria } from './recursos';
 
@@ -18,6 +18,7 @@ export default function Agendamentos() {
     const [message, setMessage] = useState();
     const [snackbar, setSnack] = useState(false);
     const [type, setType] = useState();
+    const [name, setName] = useState('Agendados');
 
     const theme = createMuiTheme({ palette: { primary: green } });
 
@@ -25,7 +26,7 @@ export default function Agendamentos() {
 
     useEffect(async () => {
         const token = await sessionStorage.getItem('token');
-        if (token) { console.log(token) }
+        if (token) { }
         else { history.push('/'); }
         _getAgenda();
     }, []);
@@ -33,49 +34,94 @@ export default function Agendamentos() {
 
     const _getAgenda = async () => {
         setBackDrop(true);
-        const response = await _getAgendamentos();
-        setAgendamentos(response.data);
-        setBackDrop(false);
+        const response = await _getAgendamentos().then(response => {
+            setName('Agendados');
+            setAgendamentos(response.data);
+            setBackDrop(false);
+        }).catch(error => {
+            setSnack(true);
+            setMessage(error.data.msg);
+            setType('error');
+        })
+
     }
 
     const _getArquivados = async () => {
         setBackDrop(true);
-        const response = await _getArquivo();
-        setAgendamentos(response.data);
-        setBackDrop(false);
+        const response = await _getArquivo().then(response => {
+            setName('Arquivados');
+            setAgendamentos(response.data);
+            setBackDrop(false);
+        }).catch(error => {
+            setName('Agendados');
+            setSnack(true);
+            setMessage("Erro ao buscar agendamentos");
+            setType('error');
+        });
     }
 
     const _cancelaAtendimento = async (id) => {
-        const response = await _deletaAgendamento(id);
-        if (response.status == 200) {
+        const response = await _deletaAgendamento(id).then(response => {
             setSnack(true);
-            setMessage("Agendamento cancelado com sucesso!");
+            setMessage(response.data.msg);
             setType('success');
             _getAgenda();
-        }
-        else {
+        }).catch(error => {
             setSnack(true);
-            setMessage("Erro ao cancelar agendamento. Tente novamente mais tarde!");
+            setMessage("Erro ao cancelar agendamento!");
             setType('error');
             _getAgenda();
-        }
+        });
 
     }
 
-    const _filtraCatetgoria = async (cat) => {
-        if (cat == "todas") { _getAgenda() }
-        else {
-            const response = await _filtroPorCategoria(cat);
-            if (response.status == 200) {
-                console.log(response);
-                setAgendamentos(response.data);
-            }
-            else {
+    const _excluiArquivo = async (id) => {
+        const response = await _deletaArquivo(id)
+            .then(response => {
                 setSnack(true);
-                setMessage("Não existem agendamentos para esta categoria");
+                setMessage(response.data.msg);
+                setType('success');
+                _getAgenda();
+            }).catch(error => {
+                setSnack(true);
+                setMessage("Erro ao cancelar agendamento!");
                 setType('error');
                 _getAgenda();
-            }
+            });
+    }
+
+    const buttons = (agenda) => {
+        if (name == 'Arquivados') {
+            return (
+                <div style={divbuttons}>
+                    <Button {...propsbuttons} onClick={() => _excluiArquivo(agenda.id)} >Excluir</Button>
+                    {/* <Button {...propsbuttons} onClick={() => _arquiva(agenda)}>Arquivar</Button> */}
+                </div>)
+        }
+        else {
+            return (
+                <div style={divbuttons}>
+                    <Button {...propsbuttons} onClick={() => _cancelaAtendimento(agenda.id)} >Cancelar</Button>
+                    <Button {...propsbuttons} onClick={() => _arquiva(agenda)}>Arquivar</Button>
+                </div>
+            )
+        }
+    }
+
+    const labelButton = () => {
+        if (name == 'Agendados') {
+            return (
+                <div style={{ display: "flex", width: '100%', paddingLeft: 10, justifyContent: "flex-end" }}>
+                    <Button {...propsbuttons} onClick={() => _getArquivados()}>Arquivados</Button>
+                </div>
+            )
+        }
+        else {
+            return (
+                <div style={{ display: "flex", width: '100%', paddingLeft: 10, justifyContent: "flex-end" }}>
+                    <Button {...propsbuttons} onClick={() => _getAgenda()}>Agendamentos</Button>
+                </div>
+            )
         }
     }
 
@@ -109,20 +155,8 @@ export default function Agendamentos() {
                         <div style={divlabel}><Pane {...divbox} backgroundColor={colors.medcTr}></Pane>Medicina do trabalho</div>
                         <div style={divlabel}><Pane {...divbox} backgroundColor={colors.deplic}></Pane>Depilação à laser</div>
                         <div style={divFiltro}>
-                            <FormControl style={divFormControl}>
-                                <InputLabel>Filtrar por categoria</InputLabel>
-                                <Select style={selectCat} onChange={event => _filtraCatetgoria(event.target.value)}>
-                                    {categoria.map(cat => {
-                                        return (<MenuItem value={cat.value}>{cat.label}</MenuItem>)
-                                    })}
-                                </Select>
-                            </FormControl>
-                            <div style={{ display: "flex", width: '33%', paddingLeft: 10 }}>
-                                <TextField style={selectCat} label="Filtrar por data" />
-                            </div>
-                            <div style={{ display: "flex", width: '33%', paddingLeft: 10, justifyContent: "flex-end" }}>
-                                <Button {...propsbuttons} onClick={() => _getArquivados()}>Arquivados</Button>
-                            </div>
+                            {labelButton()}
+
                         </div>
                     </div>
                 </Pane>
@@ -141,17 +175,14 @@ export default function Agendamentos() {
                                 <Pane {...cardprops} backgroundColor={cores}>
                                     <CardContent>
                                         <Typography style={textprops}> {agenda.dia} {agenda.hora}</Typography>
-                                        <Typography style={textprops}> {agenda.NomeUsuario}, CPF: {agenda.CPF}</Typography>
+                                        <Typography style={textprops}> {agenda.name}, CPF: {agenda.cpf}</Typography>
                                         <Typography style={textprops}> {agenda.especialidade}, {agenda.medico}</Typography>
                                         <Typography style={textprops}> {agenda.preco}</Typography>
                                         <Typography style={textprops}> {agenda.Endereco}</Typography>
-                                        <Typography style={textprops}> E-mail: {agenda.Email}   Fone: {agenda.Fone}</Typography>
+                                        <Typography style={textprops}> E-mail: {agenda.email}   Fone: {agenda.fone}</Typography>
                                     </CardContent>
                                     <CardActions>
-                                        <div style={divbuttons}>
-                                            <Button {...propsbuttons} onClick={() => _cancelaAtendimento(agenda.id)} >Cancelar</Button>
-                                            <Button {...propsbuttons} onClick={() => _arquiva(agenda)}>Arquivar</Button>
-                                        </div>
+                                        {buttons(agenda)}
                                     </CardActions>
                                 </Pane>
                             </div>

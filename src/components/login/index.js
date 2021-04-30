@@ -13,8 +13,8 @@ import { Alert } from '@material-ui/lab';
 export default function Login() {
 
     const [hoje, setHoje] = useState();
-    const [mail, setMail] = useState();
-    const [senha, setSenha] = useState();
+    const [mail, setMail] = useState('');
+    const [senha, setSenha] = useState('');
     const [backDrop, setBackDrop] = useState(false);
     const [message, setMessage] = useState();
     const [snackbar, setSnack] = useState(false);
@@ -26,17 +26,25 @@ export default function Login() {
 
     async function _logar() {
         setBackDrop(true);
-        const response = await _login(mail, senha);
-        if (response) {
-            setBackDrop(false);
-            sessionStorage.setItem('token', process.env.TOKEN);
-            history.push('/cadastro');
-        }
-        else {
+        if (mail == '' || senha == '') {
             setBackDrop(false);
             setSnack(true);
-            setMessage("Usuário e/ou senha incorretos");
+            setMessage("Todos os campos precisam ser preenchidos!");
             setType('error');
+        }
+        else {
+            const response = await _login(mail, senha);
+            if (response) {
+                setBackDrop(false);
+                sessionStorage.setItem('token', process.env.TOKEN);
+                history.push('/cadastro');
+            }
+            else {
+                setBackDrop(false);
+                setSnack(true);
+                setMessage("Usuário e/ou senha incorretos");
+                setType('error');
+            }
         }
     }
 
@@ -49,8 +57,8 @@ export default function Login() {
                 <div style={divDateImage}>
                     <figure><img src={Logo} alt="logo" style={imageStyle} /></figure>
                 </div>
-                <TextField style={fieldStyle} {...fieldMailProps} value={mail} onChange={event => setMail(event.target.value)} />
-                <TextField style={fieldStyle} {...fieldPassProps} value={senha} onChange={event => setSenha(event.target.value)} />
+                <TextField style={fieldStyle} {...fieldMailProps} value={mail} onChange={event => setMail(event.target.value)} onKeyDown={e => { if (e.key == "Enter") { _logar() } }} />
+                <TextField style={fieldStyle} {...fieldPassProps} value={senha} onChange={event => setSenha(event.target.value)} onKeyDown={e => { if (e.key == "Enter") { _logar() } }} />
                 <Button style={buttonStyle} {...buttonProps} onClick={() => _logar()}>LOGIN</Button>
             </Pane>
         </div>
