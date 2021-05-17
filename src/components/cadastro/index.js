@@ -59,6 +59,8 @@ export default function Cadastro() {
         }
         else {
             const hr = JSON.stringify(value.dataHora);
+            console.log(value.dataHora);
+            console.log(hr);
             const response = await _saveCadastro({
                 especialidade: proced
                 , medico: medico
@@ -130,7 +132,7 @@ export default function Cadastro() {
                             <Text style={textprops}>Selecione a data e hora</Text>
                         </div>
                         <div style={divHour}>
-                            <Formik enableReinitialize={true} initialValues={{ dataHora: [{ data: '', hora: '', tipo: "disponivel" }] }}>
+                            <Formik enableReinitialize={true} initialValues={{ dataHora: [{ data: '', hora: '', tipo: "disponivel"}] }}>
                                 {({ values, setFieldValue }) => {
                                     setValues(values);
                                     return (
@@ -143,6 +145,8 @@ export default function Cadastro() {
                                                         </div>
                                                         <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
                                                             {values.dataHora.map((configs, index) => {
+
+                                                                console.log(values.dataHora);
                                                                 const data = `dataHora.${index}.data`;
                                                                 const hora = `dataHora.${index}.hora`;
                                                                 return (

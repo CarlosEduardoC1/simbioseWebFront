@@ -11,3 +11,31 @@ export const tabs = [
     , { value: 'Especialidades', index: 9 }
     , { value: 'Depilação à laser', index: 10 }
 ]
+
+export const formStyle = {
+    justifyContent: 'space-between'
+    , flexWrap: 'wrap'
+}
+
+export const fieldStyle = {
+    display: "flex"
+    , paddingLeft: 10
+}
+
+
+export const divButtonStyle = {
+    display: 'flex'
+    , justifyContent: 'flex-end'
+    , alignItems: 'flex-end'
+}
+
+export const buttonStyle = {
+    margin: '20px'
+    , width: '20%'
+}
+
+export const divArrayStyle = {
+    display: 'flex'
+    , flexDirection: 'row'
+    , flexWrap: 'wrap'
+}
